@@ -46,12 +46,13 @@ try {
 }
 
 //⑧POSTの「books」の値が空か判定する。空の場合はif文の中に入る。
-// if(empty($_POST['books'])){
-// 	//⑨SESSIONの「success」に「入荷する商品が選択されていません」と設定する。
-// 	$_SESSION['success'] = '入荷する商品が選択されていません';
-// 	//⑩在庫一覧画面へ遷移する。
-// 	header('Location: zaiko_ichiran.php');
-// }
+if(empty($_POST['books'])){
+	//⑨SESSIONの「success」に「入荷する商品が選択されていません」と設定する。
+	$_SESSION['success'] = '入荷する商品が選択されていません';
+	//⑩在庫一覧画面へ遷移する。
+	header('Location: zaiko_ichiran.php');
+	exit;
+}
 
 $books = fetchBooks($_POST['books'], $pdo);
 
@@ -70,6 +71,7 @@ function getId($id,$con){
 
 function fetchBooks($ids, $pdo){
 	$id = implode(',', $ids);
+	if (!$id) return;
 	$condition = "id in ($id)";
 	$sql = "SELECT * FROM books WHERE {$condition}";
 	$stmt = $pdo->query($sql);
@@ -130,7 +132,7 @@ function fetchBooks($ids, $pdo){
 					 <!-- ⑮POSTの「books」から一つずつ値を取り出し、変数に保存する。
     				 ⑯「getId」関数を呼び出し、変数に戻り値を入れる。その際引数に⑮の処理で取得した値と⑥のDBの接続情報を渡す。 -->
     				<?php foreach($books as $book): ?>
-					<input type="hidden" value="<?= $id ?>" name="books[]">
+					<input type="hidden" value="<?= $book['id'] ?>" name="books[]">
 					<tr>
 						<td><?= $book['id'] ?></td>
 						<td><?= $book['title'] ?></td>
