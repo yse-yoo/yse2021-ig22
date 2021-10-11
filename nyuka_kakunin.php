@@ -18,7 +18,7 @@ function getByid($id, $con)
 	 * その際にWHERE句でメソッドの引数の$idに一致する書籍のみ取得する。
 	 * SQLの実行結果を変数に保存する。
 	 */
-	$sql = "SELECT * FROM books id = {$id}";
+	$sql = "SELECT * FROM books WHERE id = {$id}";
 	$stmt = $con->query($sql);
 
 	//③実行した結果から1レコード取得し、returnで値を返す。
@@ -59,7 +59,7 @@ try {
 }
 
 //⑩書籍数をカウントするための変数を宣言し、値を0で初期化する
-$book_count = 0;
+$index = 0;
 
 //⑪POSTの「books」から値を取得し、変数に設定する。
 $book_ids = $_POST['books'];
@@ -88,7 +88,7 @@ foreach ($book_ids as $book_id) {
 	// 	}
 
 	//㉒ ⑩で宣言した変数をインクリメントで値を1増やす。
-	$book_count++;
+	$index++;
 }
 
 /*
@@ -137,26 +137,24 @@ foreach ($book_ids as $book_id) {
 					<tbody>
 						<?php
 						//㉜書籍数をカウントするための変数を宣言し、値を0で初期化する。
+						$index = 0;
 
 						//㉝POSTの「books」から値を取得し、変数に設定する。
-						// foreach(/* ㉝の処理を書く */){
-						//㉞「getByid」関数を呼び出し、変数に戻り値を入れる。その際引数に㉜の処理で取得した値と⑧のDBの接続情報を渡す。
+						foreach ($book_ids as $book_id) {
+							//㉞「getByid」関数を呼び出し、変数に戻り値を入れる。その際引数に㉜の処理で取得した値と⑧のDBの接続情報を渡す。
+							$book = getById($book_id, $pdo);
 						?>
-						<tr>
-							<td><?php //echo	/* ㉟ ㉞で取得した書籍情報からtitleを表示する。 */;
-								?></td>
-							<td><?php //echo	/* ㊱ ㉞で取得した書籍情報からstockを表示する。 */;
-								?></td>
-							<td><?php //echo	/* ㊱ POSTの「stock」に設定されている値を㉜の変数を使用して呼び出す。 */;
-								?></td>
-						</tr>
-						<input type="hidden" name="books[]" value="<?php //echo /* ㊲ ㉝で取得した値を設定する */; 
-																	?>">
-						<input type="hidden" name="stock[]" value='<?php //echo /* ㊳POSTの「stock」に設定されている値を㉜の変数を使用して設定する。 */;
-																	?>'>
+							<tr>
+								<td><?= $book['title'] ?></td>
+								<td><?= $book['stock'] ?></td>
+								<td><?= $stock = $_POST['stock'][$index] ?></td>
+							</tr>
+							<input type="hidden" name="books[]" value="<?= $book_id ?>">
+							<input type="hidden" name="stock[]" value='<?= $stock ?>'>
 						<?php
-						//㊴ ㉜で宣言した変数をインクリメントで値を1増やす。
-						// }
+							//㊴ ㉜で宣言した変数をインクリメントで値を1増やす。
+							$index++;
+						}
 						?>
 					</tbody>
 				</table>
