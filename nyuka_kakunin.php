@@ -35,10 +35,12 @@ function updateByid($id, $con, $total)
 }
 
 //⑤SESSIONの「login」フラグがfalseか判定する。「login」フラグがfalseの場合はif文の中に入る。
-// if (/* ⑤の処理を書く */){
-// 	//⑥SESSIONの「error2」に「ログインしてください」と設定する。
-// 	//⑦ログイン画面へ遷移する。
-// }
+if (empty($_SESSION['login'])){
+	$_SESSION['error2'] = 'ログインしてください';
+	header('Location: login.php');
+	exit;
+}
+
 
 //⑧データベースへ接続し、接続情報を変数に保存する
 //⑨データベースで使用する文字コードを「UTF8」にする
