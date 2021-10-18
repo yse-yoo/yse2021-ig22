@@ -20,7 +20,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 //③SESSIONの「login」フラグがfalseか判定する。「login」フラグがfalseの場合はif文の中に入る。
-if (empty($_SESSION['login'])){
+if (empty($_SESSION['login'])) {
 	$_SESSION['error2'] = 'ログインしてください';
 	header('Location: login.php');
 	exit;
@@ -46,17 +46,16 @@ try {
 }
 
 //⑧POSTの「books」の値が空か判定する。空の場合はif文の中に入る。
-if(empty($_POST['books'])){
-	//⑨SESSIONの「success」に「入荷する商品が選択されていません」と設定する。
+if (empty($_POST['books'])) {
 	$_SESSION['success'] = '入荷する商品が選択されていません';
-	//⑩在庫一覧画面へ遷移する。
 	header('Location: zaiko_ichiran.php');
 	exit;
 }
 
 //$books = fetchBooks($_POST['books'], $pdo);
 
-function getId($id,$con){
+function getId($id, $con)
+{
 	/* 
 	 * ⑪書籍を取得するSQLを作成する実行する。
 	 * その際にWHERE句でメソッドの引数の$idに一致する書籍のみ取得する。
@@ -69,7 +68,8 @@ function getId($id,$con){
 	return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
-function fetchBooks($ids, $pdo){
+function fetchBooks($ids, $pdo)
+{
 	$id = implode(',', $ids);
 	if (!$id) return;
 	$condition = "id in ($id)";
@@ -82,11 +82,13 @@ function fetchBooks($ids, $pdo){
 ?>
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 	<title>入荷</title>
 	<link rel="stylesheet" href="css/ichiran.css" type="text/css" />
 </head>
+
 <body>
 	<!-- ヘッダ -->
 	<div id="header">
@@ -106,15 +108,16 @@ function fetchBooks($ids, $pdo){
 		<div id="pagebody">
 			<!-- エラーメッセージ -->
 			<div id="error">
-			<?php
-			/*
+				<?php
+				/*
 			 * ⑬SESSIONの「error」にメッセージが設定されているかを判定する。
 			 * 設定されていた場合はif文の中に入る。
-			 */ 
-			// if(/* ⑬の処理を書く */){
-			// 	//⑭SESSIONの「error」の中身を表示する。
-			// }
-			?>
+			 */
+				if (isset($_SESSION['error'])) {
+					//⑭SESSIONの「error」の中身を表示する。
+					echo $_SESSION['error'];
+				}
+				?>
 			</div>
 			<div id="center">
 				<table>
@@ -129,19 +132,20 @@ function fetchBooks($ids, $pdo){
 							<th id="in">入荷数</th>
 						</tr>
 					</thead>
-					 <!-- ⑮POSTの「books」から一つずつ値を取り出し、変数に保存する。
+					<!-- ⑮POSTの「books」から一つずつ値を取り出し、変数に保存する。
     				 ⑯「getId」関数を呼び出し、変数に戻り値を入れる。その際引数に⑮の処理で取得した値と⑥のDBの接続情報を渡す。 -->
-    				<?php foreach($books as $book): ?>
-					<input type="hidden" value="<?= $book['id'] ?>" name="books[]">
-					<tr>
-						<td><?= $book['id'] ?></td>
-						<td><?= $book['title'] ?></td>
-						<td><?= $book['author'] ?></td>
-						<td><?= $book['salesDate'] ?></td>
-						<td><?= $book['price'] ?></td>
-						<td><?= $book['stock'] ?></td>
-						<td><input type='text' name='stock[]' size='5' maxlength='11' required></td>
-					</tr>
+					<?php foreach ($_POST['books'] as $book_id) : ?>
+						<?php $book = getId($book_id, $pdo) ?>
+						<input type="hidden" value="<?= $book['id'] ?>" name="books[]">
+						<tr>
+							<td><?= $book['id'] ?></td>
+							<td><?= $book['title'] ?></td>
+							<td><?= $book['author'] ?></td>
+							<td><?= $book['salesDate'] ?></td>
+							<td><?= $book['price'] ?></td>
+							<td><?= $book['stock'] ?></td>
+							<td><input type='text' name='stock[]' size='5' maxlength='11' required></td>
+						</tr>
 					<?php endforeach ?>
 				</table>
 				<button type="submit" id="kakutei" formmethod="POST" name="decision" value="1">確定</button>
@@ -153,4 +157,5 @@ function fetchBooks($ids, $pdo){
 		<footer>株式会社アクロイト</footer>
 	</div>
 </body>
+
 </html>
