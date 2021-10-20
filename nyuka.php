@@ -1,34 +1,15 @@
 <?php
-/* 
-【機能】
-書籍の入荷数を指定する。確定ボタンを押すことで確認画面へ入荷個数を引き継いで遷移す
-る。なお、在庫数は各書籍100冊を最大在庫数とする。
-
-【エラー一覧（エラー表示：発生条件）】
-このフィールドを入力して下さい(吹き出し)：入荷個数が未入力
-最大在庫数を超える数は入力できません：現在の在庫数と入荷の個数を足した値が最大在庫数を超えている
-数値以外が入力されています：入力された値に数字以外の文字が含まれている
-*/
-
-/*
- * ①session_status()の結果が「PHP_SESSION_NONE」と一致するか判定する。
- * 一致した場合はif文の中に入る。
- */
 if (session_status() === PHP_SESSION_NONE) {
-	//②セッションを開始する
 	session_start();
 }
 
-//③SESSIONの「login」フラグがfalseか判定する。「login」フラグがfalseの場合はif文の中に入る。
 if (empty($_SESSION['login'])) {
 	$_SESSION['error2'] = 'ログインしてください';
 	header('Location: login.php');
 	exit;
 }
 
-
-//⑥データベースへ接続し、接続情報を変数に保存する
-//⑦データベースで使用する文字コードを「UTF8」にする
+//TODO
 $db_name = 'zaiko2021_yse';
 $db_host = 'localhost';
 $db_port = '3306';
@@ -45,38 +26,16 @@ try {
 	exit;
 }
 
-//⑧POSTの「books」の値が空か判定する。空の場合はif文の中に入る。
 if (empty($_POST['books'])) {
 	$_SESSION['success'] = '入荷する商品が選択されていません';
 	header('Location: zaiko_ichiran.php');
 	exit;
 }
 
-//$books = fetchBooks($_POST['books'], $pdo);
-
 function getId($id, $con)
 {
-	/* 
-	 * ⑪書籍を取得するSQLを作成する実行する。
-	 * その際にWHERE句でメソッドの引数の$idに一致する書籍のみ取得する。
-	 * SQLの実行結果を変数に保存する。
-	 */
 	$sql = "SELECT * FROM books WHERE id = {$id}";
-	$stmt = $con->query($sql);
-
-	//⑫実行した結果から1レコード取得し、returnで値を返す。
-	return $stmt->fetch(PDO::FETCH_ASSOC);
-}
-
-function fetchBooks($ids, $pdo)
-{
-	$id = implode(',', $ids);
-	if (!$id) return;
-	$condition = "id in ($id)";
-	$sql = "SELECT * FROM books WHERE {$condition}";
-	$stmt = $pdo->query($sql);
-
-	return $stmt->fetchAll(PDO::FETCH_ASSOC);
+	return $con->query($sql)->fetch(PDO::FETCH_ASSOC);
 }
 
 ?>
@@ -106,18 +65,8 @@ function fetchBooks($ids, $pdo)
 
 	<form action="nyuka_kakunin.php" method="post">
 		<div id="pagebody">
-			<!-- エラーメッセージ -->
 			<div id="error">
-				<?php
-				/*
-			 * ⑬SESSIONの「error」にメッセージが設定されているかを判定する。
-			 * 設定されていた場合はif文の中に入る。
-			 */
-				if (isset($_SESSION['error'])) {
-					//⑭SESSIONの「error」の中身を表示する。
-					echo $_SESSION['error'];
-				}
-				?>
+				<?= @$_SESSION['error']; ?>
 			</div>
 			<div id="center">
 				<table>

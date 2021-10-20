@@ -1,32 +1,13 @@
 <?php
-/* 
-【機能】
-書籍の出荷数を指定する。確定ボタンを押すことで確認画面へ出荷個数を引き継いで遷移す
-る。
-
-【エラー一覧（エラー表示：発生条件）】
-このフィールドを入力して下さい(吹き出し)：出荷個数が未入力
-出荷する個数が在庫数を超えています：出荷したい個数が在庫数を超えている
-数値以外が入力されています：入力された値に数字以外の文字が含まれている
-*/
-/*
- * ①session_status()の結果が「PHP_SESSION_NONE」と一致するか判定する。
- * 一致した場合はif文の中に入る。
- */
 if (session_status() === PHP_SESSION_NONE) {
-	//②セッションを開始する
 	session_start();
 }
 
-//③SESSIONの「login」フラグがfalseか判定する。「login」フラグがfalseの場合はif文の中に入る。
 if (empty($_SESSION['login'])){
 	$_SESSION['error2'] = 'ログインしてください';
 	header('Location: login.php');
 }
 
-
-//⑥データベースへ接続し、接続情報を変数に保存する
-//⑦データベースで使用する文字コードを「UTF8」にする
 $db_name = 'zaiko2021_yse';
 $db_host = 'localhost';
 $db_port = '3306';
@@ -43,27 +24,16 @@ try {
 	exit;
 }
 
-
-//⑧POSTの「books」の値が空か判定する。空の場合はif文の中に入る。
-// if(/* ⑧の処理を行う */){
-// 	//⑨SESSIONの「success」に「出荷する商品が選択されていません」と設定する。
-// 	//⑩在庫一覧画面へ遷移する。
-// }
-
-$books = fetchBooks($_POST['books'], $pdo);
+if (empty($_POST['books'])) {
+	$_SESSION['success'] = '出荷する商品が選択されていません';
+	header('Location: zaiko_ichiran.php');
+	exit;
+}
 
 function getId($id, $con)
 {
-	/* 
-	 * ⑪書籍を取得するSQLを作成する実行する。
-	 * その際にWHERE句でメソッドの引数の$idに一致する書籍のみ取得する。
-	 * SQLの実行結果を変数に保存する。
-	 */
 	$sql = "SELECT * FROM books WHERE id = {$id}";
-	$stmt = $con->query($sql);
-
-	//⑫実行した結果から1レコード取得し、returnで値を返す。
-	return $stmt->fetch(PDO::FETCH_ASSOC);
+	return $con->query($sql)->fetch(PDO::FETCH_ASSOC);
 }
 
 function fetchBooks($ids, $pdo)
@@ -71,9 +41,7 @@ function fetchBooks($ids, $pdo)
 	$id = implode(',', $ids);
 	$condition = "id in ($id)";
 	$sql = "SELECT * FROM books WHERE {$condition}";
-	$stmt = $pdo->query($sql);
-
-	return $stmt->fetchAll(PDO::FETCH_ASSOC);
+	return $pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC);
 }
 ?>
 <!DOCTYPE html>
@@ -102,17 +70,8 @@ function fetchBooks($ids, $pdo)
 
 	<form action="syukka_kakunin.php" method="post">
 		<div id="pagebody">
-			<!-- エラーメッセージ -->
 			<div id="error">
-				<?php
-				/*
-		 * ⑬SESSIONの「error」にメッセージが設定されているかを判定する。
-		 * 設定されていた場合はif文の中に入る。
-		 */
-				// if(/* ⑬の処理を書く */){
-				// 	//⑭SESSIONの「error」の中身を表示する。
-				// }
-				?>
+				<?= @$_SESSION['error']; ?>
 			</div>
 			<div id="center">
 				<table>
@@ -127,9 +86,7 @@ function fetchBooks($ids, $pdo)
 							<th id="in">出荷数</th>
 						</tr>
 					</thead>
-					<!-- ⑮POSTの「books」から一つずつ値を取り出し、変数に保存する。
-    				 ⑯「getId」関数を呼び出し、変数に戻り値を入れる。その際引数に⑮の処理で取得した値と⑥のDBの接続情報を渡す。 -->
-					<?php foreach ($books as $book) : ?>
+					<?php foreach (fetchBooks($_POST['books'], $pdo) as $book) : ?>
 						<input type="hidden" value="<?= $book['id'] ?>" name="books[]">
 						<tr>
 							<td><?= $book['id'] ?></td>

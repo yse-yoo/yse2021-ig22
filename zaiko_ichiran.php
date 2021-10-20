@@ -1,27 +1,19 @@
 <?php
-/* 
-【機能】
-書籍テーブルより書籍情報を取得し、画面に表示する。
-商品をチェックし、ボタンを押すことで入荷、出荷が行える。
-ログアウトボタン押下時に、セッション情報を削除しログイン画面に遷移する。
-
-【エラー一覧（エラー表示：発生条件）】
-入荷する商品が選択されていません：商品が一つも選択されていない状態で入荷ボタンを押す
-出荷する商品が選択されていません：商品が一つも選択されていない状態で出荷ボタンを押す
-*/
-
-//①セッションを開始する
 session_start();
 
-//②SESSIONの「login」フラグがfalseか判定する。「login」フラグがfalseの場合はif文の中に入る。
-if (empty($_SESSION['login'])){
+if (isset($_SESSION['error'])) unset($_SESSION['error']);
+if (isset($_SESSION['success'])) {
+	$message = $_SESSION['success'];
+	unset($_SESSION['success']);
+}
+
+if (empty($_SESSION['login'])) {
 	$_SESSION['error2'] = 'ログインしてください';
 	header('Location: login.php');
 	exit;
 }
 
-//⑤データベースへ接続し、接続情報を変数に保存する
-//⑥データベースで使用する文字コードを「UTF8」にする
+//TODO
 $db_name = 'zaiko2021_yse';
 $db_host = 'localhost';
 $db_port = '3306';
@@ -38,8 +30,11 @@ try {
 	exit;
 }
 
-//⑦書籍テーブルから書籍情報を取得するSQLを実行する。また実行結果を変数に保存する
+//TODO
+$limit = 0;
+$offset = 0;
 $sql = "SELECT * FROM books";
+if ($limit > 0) $sql .= " LIMIT {$limit} OFFSET {$offset}";
 $stmt = $pdo->query($sql);
 
 ?>
@@ -59,24 +54,13 @@ $stmt = $pdo->query($sql);
 	<form action="zaiko_ichiran.php" method="post" id="myform" name="myform">
 		<div id="pagebody">
 			<!-- エラーメッセージ表示 -->
-			<div id="error">
-				<?php
-				/*
-				 * ⑧SESSIONの「success」にメッセージが設定されているかを判定する。
-				 * 設定されていた場合はif文の中に入る。
-				 */
-				// if(/* ⑧の処理を書く */){
-				//⑨SESSIONの「success」の中身を表示する。
-				// }
-				?>
-			</div>
+			<div id="error"><?= @$message ?></div>
 
 			<!-- 左メニュー -->
 			<div id="left">
 				<p id="ninsyou_ippan">
-					<?php
-					echo @$_SESSION["account_name"];
-					?><br>
+					<?php echo @$_SESSION["account_name"];?>
+					<br>
 					<button type="button" id="logout" onclick="location.href='logout.php'">ログアウト</button>
 				</p>
 				<button type="submit" id="btn1" formmethod="POST" name="decision" value="3" formaction="nyuka.php">入荷</button>
@@ -100,17 +84,15 @@ $stmt = $pdo->query($sql);
 						</tr>
 					</thead>
 					<tbody>
-						<!-- //⑩SQLの実行結果の変数から1レコードのデータを取り出す。レコードがない場合はループを終了する。
-						//⑪extract変数を使用し、1レコードのデータを渡す。 -->
 						<?php while ($book = $stmt->fetch(PDO::FETCH_ASSOC)) : ?>
-							<tr id="book">
-								<td id="check"><input type="checkbox" name="books[]" value="<?= $book['id'] ?>"></td>
-								<td id="id"><?= $book['id'] ?></td>
-								<td id="title"><?= $book['title'] ?></td>
-								<td id="author"><?= $book['author'] ?></td>
-								<td id="date"><?= $book['salesDate'] ?></td>
-								<td id="price"><?= $book['price'] ?></td>
-								<td id="stock"><?= $book['stock'] ?></td>
+							<tr>
+								<td><input type="checkbox" name="books[]" value="<?= $book['id'] ?>"></td>
+								<td><?= $book['id'] ?></td>
+								<td><?= $book['title'] ?></td>
+								<td><?= $book['author'] ?></td>
+								<td><?= $book['salesDate'] ?></td>
+								<td><?= $book['price'] ?></td>
+								<td><?= $book['stock'] ?></td>
 							</tr>
 						<?php endwhile ?>
 					</tbody>
