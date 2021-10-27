@@ -1,4 +1,38 @@
 <?php
+function paginate($count, $current_page, $limit = 10, $per_count = 10)
+{
+	$page_count = ceil($count / $limit);
+	$page_start = $current_page;
+	$page_end = $page_start + $per_count - 1;
+	if ($page_end > $page_count) {
+		$page_end = $page_count;
+		$page_start = $page_end - $per_count + 1;
+	}
+	if ($page_start < 0) $page_start = 1;
+
+	$page_prev = ($current_page <= 1) ? 1 : $current_page - 1;
+	$page_next = ($current_page < $page_count) ? $current_page + 1 : $page_count;
+
+	$pages = range($page_start, $page_end);
+
+	$paginate = compact(
+		'page_count',
+		'page_start',
+		'page_end',
+		'page_prev',
+		'page_next',
+		'pages',
+	);
+	return $paginate;
+}
+
+function bookCount($pdo)
+{
+	$sql = "SELECT count(id) AS count FROM books;";
+	$row = $pdo->query($sql)->fetch(PDO::FETCH_ASSOC);
+	return $row['count'];
+}
+
 session_start();
 
 if (isset($_SESSION['error'])) unset($_SESSION['error']);
@@ -30,13 +64,20 @@ try {
 	exit;
 }
 
-//TODO
-$limit = 0;
-$offset = 0;
+//pagination
+$current_page = (!empty($_GET['page'])) ? $_GET['page'] : 1;
+$count = bookCount($pdo);
+$limit = 10;
+$offset = ($current_page - 1) * $limit;
+
+//paginate
+$paginate = paginate($count, $current_page, $limit, 5);
+extract($paginate);
+
+//book list
 $sql = "SELECT * FROM books";
 if ($limit > 0) $sql .= " LIMIT {$limit} OFFSET {$offset}";
 $stmt = $pdo->query($sql);
-
 ?>
 <!DOCTYPE html>
 <html lang="ja">
@@ -59,7 +100,7 @@ $stmt = $pdo->query($sql);
 			<!-- 左メニュー -->
 			<div id="left">
 				<p id="ninsyou_ippan">
-					<?php echo @$_SESSION["account_name"];?>
+					<?php echo @$_SESSION["account_name"]; ?>
 					<br>
 					<button type="button" id="logout" onclick="location.href='logout.php'">ログアウト</button>
 				</p>
@@ -104,6 +145,23 @@ $stmt = $pdo->query($sql);
 			</div>
 		</div>
 	</form>
+
+	<nav aria-label="">
+		<ul class="pagination">
+			<li class="page-item"><a class="page-link" href="?page=1">最初&laquo;</a></li>
+			<li class="page-item"><a class="page-link" href="?page=<?= $page_prev ?>">Prev</a></li>
+			<?php foreach ($pages as $page) : ?>
+				<?php if ($current_page == $page) : ?>
+					<li class="page-item active"><a class="page-link" href="?page=<?= $page ?>"><?= $page ?></a></li>
+				<?php else : ?>
+					<li class="page-item"><a class="page-link" href="?page=<?= $page ?>"><?= $page ?></a></li>
+				<?php endif ?>
+			<?php endforeach ?>
+			<li class="page-item"><a class="page-link" href="?page=<?= $page_next ?>">Next</a></li>
+			<li class="page-item"><a class="page-link" href="?page=<?= $page_count ?>">最後&raquo;</a></li>
+		</ul>
+	</nav>
+
 	<div id="footer">
 		<footer>株式会社アクロイト</footer>
 	</div>
