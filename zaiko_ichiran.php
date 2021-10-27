@@ -26,9 +26,12 @@ function paginate($count, $current_page, $limit = 10, $per_count = 10)
 	return $paginate;
 }
 
-function bookCount($pdo)
+function bookCount($pdo, $keyword = null)
 {
-	$sql = "SELECT count(id) AS count FROM books;";
+	$sql = "SELECT count(id) AS count FROM books";
+	if (!empty($keyword)) {
+		$sql .= " WHERE title LIKE '%{$keyword}%'";
+	}
 	$row = $pdo->query($sql)->fetch(PDO::FETCH_ASSOC);
 	return $row['count'];
 }
@@ -69,13 +72,15 @@ $current_page = (!empty($_GET['page'])) ? $_GET['page'] : 1;
 $count = bookCount($pdo);
 $limit = 10;
 $offset = ($current_page - 1) * $limit;
-
-//paginate
 $paginate = paginate($count, $current_page, $limit, 5);
 extract($paginate);
 
-//book list
+//TODO book list
+$keyword = @$_GET['keyword'];
 $sql = "SELECT * FROM books";
+if (!empty($keyword)) {
+	$sql .= " WHERE title LIKE '%{$_GET['keyword']}%'";
+}
 if ($limit > 0) $sql .= " LIMIT {$limit} OFFSET {$offset}";
 $stmt = $pdo->query($sql);
 ?>
@@ -91,6 +96,12 @@ $stmt = $pdo->query($sql);
 <body>
 	<div id="header">
 		<h1>書籍一覧</h1>
+	</div>
+	<div class="search">
+		<form action="" method="get">
+			<input type="text" name="keyword">
+			<button>検索</button>
+		</form>
 	</div>
 	<form action="zaiko_ichiran.php" method="post" id="myform" name="myform">
 		<div id="pagebody">
@@ -146,10 +157,11 @@ $stmt = $pdo->query($sql);
 		</div>
 	</form>
 
+	<?php if (empty($keyword)): ?>
 	<nav aria-label="">
 		<ul class="pagination">
 			<li class="page-item"><a class="page-link" href="?page=1">最初&laquo;</a></li>
-			<li class="page-item"><a class="page-link" href="?page=<?= $page_prev ?>">Prev</a></li>
+			<li class="page-item"><a class="page-link" href="?page=<?= $page_prev ?>">前へ</a></li>
 			<?php foreach ($pages as $page) : ?>
 				<?php if ($current_page == $page) : ?>
 					<li class="page-item active"><a class="page-link" href="?page=<?= $page ?>"><?= $page ?></a></li>
@@ -157,10 +169,11 @@ $stmt = $pdo->query($sql);
 					<li class="page-item"><a class="page-link" href="?page=<?= $page ?>"><?= $page ?></a></li>
 				<?php endif ?>
 			<?php endforeach ?>
-			<li class="page-item"><a class="page-link" href="?page=<?= $page_next ?>">Next</a></li>
+			<li class="page-item"><a class="page-link" href="?page=<?= $page_next ?>">次へ</a></li>
 			<li class="page-item"><a class="page-link" href="?page=<?= $page_count ?>">最後&raquo;</a></li>
 		</ul>
 	</nav>
+	<?php endif ?>
 
 	<div id="footer">
 		<footer>株式会社アクロイト</footer>

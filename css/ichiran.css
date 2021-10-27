@@ -466,3 +466,12 @@ tr #tuika{
 	padding-top:10px;
 	padding-bottom: 10px;
 }
+
+
+.search {
+	width:1400px;
+	margin: auto;
+	background-color: #ffffff;
+	border-left: dashed 2px #d8d8d8;
+	border-right: dashed 2px#d8d8d8;
+}
